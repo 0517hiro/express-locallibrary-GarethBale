@@ -29,7 +29,7 @@ exports.author_detail = asyncHandler(async (req, res, next) => {
   }
 
   res.render("author_detail", {
-    title: "Author Detail",
+    title: "著者の詳細",
     author: author,
     author_books: allBooksByAuthor,
   });
@@ -112,7 +112,7 @@ exports.author_delete_get = asyncHandler(async (req, res, next) => {
   }
 
   res.render("author_delete", {
-    title: "Delete Author",
+    title: "著者の削除",
     author: author,
     author_books: allBooksByAuthor,
   });
