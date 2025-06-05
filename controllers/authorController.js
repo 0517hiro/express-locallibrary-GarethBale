@@ -4,25 +4,25 @@ const Book = require("../models/book");
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 
-// Display list of all Authors.
+// すべての著者のリストを表示
 exports.author_list = asyncHandler(async (req, res, next) => {
   const allAuthors = await Author.find().sort({ family_name: 1 }).exec();
   res.render("author_list", {
-    title: "Author List",
+    title: "著者一覧",
     author_list: allAuthors,
   });
 });
 
-// Display detail page for a specific Author.
+// 特定の著者の詳細ページを表示
 exports.author_detail = asyncHandler(async (req, res, next) => {
-  // Get details of author and all their books (in parallel)
+  // 著者の詳細とその著者のすべての本を（並列で）取得
   const [author, allBooksByAuthor] = await Promise.all([
     Author.findById(req.params.id).exec(),
     Book.find({ author: req.params.id }, "title summary").exec(),
   ]);
 
   if (author === null) {
-    // No results.
+    // 結果なし
     const err = new Error("Author not found");
     err.status = 404;
     return next(err);
@@ -35,14 +35,14 @@ exports.author_detail = asyncHandler(async (req, res, next) => {
   });
 });
 
-// Display Author create form on GET.
+// 著者作成フォームをGETで表示
 exports.author_create_get = (req, res, next) => {
   res.render("author_form", { title: "Create Author" });
 };
 
-// Handle Author create on POST.
+// 著者作成をPOSTで処理
 exports.author_create_post = [
-  // Validate and sanitize fields.
+  // フィールドのバリデーションとサニタイズ
   body("first_name")
     .trim()
     .isLength({ min: 1 })
@@ -66,12 +66,12 @@ exports.author_create_post = [
     .isISO8601()
     .toDate(),
 
-  // Process request after validation and sanitization.
+  // バリデーションとサニタイズ後にリクエストを処理
   asyncHandler(async (req, res, next) => {
-    // Extract the validation errors from a request.
+    // リクエストからバリデーションエラーを抽出
     const errors = validationResult(req);
 
-    // Create Author object with escaped and trimmed data
+    // エスケープ・トリム済みデータで著者オブジェクトを作成
     const author = new Author({
       first_name: req.body.first_name,
       family_name: req.body.family_name,
@@ -80,34 +80,34 @@ exports.author_create_post = [
     });
 
     if (!errors.isEmpty()) {
-      // There are errors. Render form again with sanitized values/errors messages.
+      // エラーあり。サニタイズ済み値とエラーメッセージでフォームを再表示
       res.render("author_form", {
-        title: "Create Author",
+        title: "著者の作成",
         author: author,
         errors: errors.array(),
       });
       return;
     } else {
-      // Data from form is valid.
+      // フォームデータは有効
 
-      // Save author.
+      // 著者を保存
       await author.save();
-      // Redirect to new author record.
+      // 新しい著者レコードにリダイレクト
       res.redirect(author.url);
     }
   }),
 ];
 
-// Display Author delete form on GET.
+// 著者削除フォームをGETで表示
 exports.author_delete_get = asyncHandler(async (req, res, next) => {
-  // Get details of author and all their books (in parallel)
+  // 著者の詳細とその著者のすべての本を（並列で）取得
   const [author, allBooksByAuthor] = await Promise.all([
     Author.findById(req.params.id).exec(),
     Book.find({ author: req.params.id }, "title summary").exec(),
   ]);
 
   if (author === null) {
-    // No results.
+    // 結果なし
     res.redirect("/catalog/authors");
   }
 
@@ -118,34 +118,34 @@ exports.author_delete_get = asyncHandler(async (req, res, next) => {
   });
 });
 
-// Handle Author delete on POST.
+// 著者削除をPOSTで処理
 exports.author_delete_post = asyncHandler(async (req, res, next) => {
-  // Get details of author and all their books (in parallel)
+  // 著者の詳細とその著者のすべての本を（並列で）取得
   const [author, allBooksByAuthor] = await Promise.all([
     Author.findById(req.params.id).exec(),
     Book.find({ author: req.params.id }, "title summary").exec(),
   ]);
 
   if (allBooksByAuthor.length > 0) {
-    // Author has books. Render in same way as for GET route.
+    // 著者に本がある場合。GETルートと同じ方法でレンダリング
     res.render("author_delete", {
-      title: "Delete Author",
+      title: "著者の削除",
       author: author,
       author_books: allBooksByAuthor,
     });
     return;
   } else {
-    // Author has no books. Delete object and redirect to the list of authors.
+    // 著者に本がない場合。オブジェクトを削除し、著者リストにリダイレクト
     await Author.findByIdAndDelete(req.body.authorid);
     res.redirect("/catalog/authors");
   }
 });
 
-// Display Author update form on GET.
+// 著者更新フォームをGETで表示
 exports.author_update_get = asyncHandler(async (req, res, next) => {
   const author = await Author.findById(req.params.id).exec();
   if (author === null) {
-    // No results.
+    // 結果なし
     const err = new Error("Author not found");
     err.status = 404;
     return next(err);
@@ -154,9 +154,9 @@ exports.author_update_get = asyncHandler(async (req, res, next) => {
   res.render("author_form", { title: "Update Author", author: author });
 });
 
-// Handle Author update on POST.
+// 著者更新をPOSTで処理
 exports.author_update_post = [
-  // Validate and sanitize fields.
+  // フィールドのバリデーションとサニタイズ
   body("first_name")
     .trim()
     .isLength({ min: 1 })
@@ -180,12 +180,12 @@ exports.author_update_post = [
     .isISO8601()
     .toDate(),
 
-  // Process request after validation and sanitization.
+  // バリデーションとサニタイズ後にリクエストを処理
   asyncHandler(async (req, res, next) => {
-    // Extract the validation errors from a request.
+    // リクエストからバリデーションエラーを抽出
     const errors = validationResult(req);
 
-    // Create Author object with escaped and trimmed data (and the old id!)
+    // エスケープ・トリム済みデータと古いIDで著者オブジェクトを作成
     const author = new Author({
       first_name: req.body.first_name,
       family_name: req.body.family_name,
@@ -195,15 +195,15 @@ exports.author_update_post = [
     });
 
     if (!errors.isEmpty()) {
-      // There are errors. Render the form again with sanitized values and error messages.
+      // エラーあり。サニタイズ済み値とエラーメッセージでフォームを再表示
       res.render("author_form", {
-        title: "Update Author",
+        title: "著者の更新",
         author: author,
         errors: errors.array(),
       });
       return;
     } else {
-      // Data from form is valid. Update the record.
+      // フォームデータは有効。レコードを更新
       await Author.findByIdAndUpdate(req.params.id, author);
       res.redirect(author.url);
     }
